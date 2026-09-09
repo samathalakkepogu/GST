@@ -1,0 +1,597 @@
+/* ==========================================================================
+   GST Bill Verifier — Teal Ocean Theme Layout & Page Styling (style.css)
+   ========================================================================== */
+
+/* Universal Reset & Base */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  background-image: 
+    radial-gradient(circle at 10% 10%, rgba(0, 168, 150, 0.08) 0%, transparent 45%),
+    radial-gradient(circle at 90% 80%, rgba(2, 128, 144, 0.08) 0%, transparent 45%),
+    linear-gradient(180deg, #edf6f7 0%, #e6f3f4 60%, #ddf0f1 100%);
+  background-attachment: fixed;
+  position: relative;
+}
+
+/* Bottom Ocean Wave Graphic */
+body::after {
+  content: '';
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 120px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23bfe4e4' fill-opacity='0.4' d='M0,192L48,197.3C96,203,192,213,288,202.7C384,192,480,160,576,165.3C672,171,768,213,864,224C960,235,1056,213,1152,192C1248,171,1344,149,1392,138.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3Cpath fill='%238dd4d2' fill-opacity='0.25' d='M0,256L48,240C96,224,192,192,288,181.3C384,171,480,181,576,197.3C672,213,768,235,864,224C960,213,1056,171,1152,160C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: bottom center;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Container */
+.container {
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+  position: relative;
+  z-index: 2;
+}
+
+.container-narrow {
+  max-width: 780px;
+}
+
+/* Header & Navbar — Deep Ocean Teal */
+.app-header {
+  padding: 1.15rem 0;
+  border-bottom: 1px solid rgba(0, 128, 128, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: linear-gradient(135deg, #073b4c 0%, #0a4b56 100%);
+  box-shadow: 0 4px 20px rgba(7, 59, 76, 0.15);
+}
+
+.nav-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: #FFFFFF;
+}
+
+.brand-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  background: linear-gradient(135deg, var(--ocean-teal), var(--ocean-bright));
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(0, 168, 150, 0.35);
+  flex-shrink: 0;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.brand-name {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: #FFFFFF;
+}
+
+.brand-engine-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #a7f3d0;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+
+.brand-engine-tag svg {
+  color: #34d399;
+  flex-shrink: 0;
+  animation: spin-slow 12s linear infinite;
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.brand-engine-tag:hover {
+  background: rgba(16, 185, 129, 0.28);
+  border-color: rgba(52, 211, 153, 0.65);
+  box-shadow: 0 0 14px rgba(16, 185, 129, 0.4);
+}
+
+/* Hero Section */
+.hero-section {
+  padding: 2.5rem 0 1.5rem;
+  text-align: center;
+}
+
+.hero-title {
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+}
+
+.hero-title .highlight {
+  color: var(--ocean-teal);
+  background: linear-gradient(135deg, var(--ocean-deep) 0%, var(--ocean-teal) 60%, var(--ocean-bright) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-subtitle {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  max-width: 620px;
+  margin: 0 auto 1.5rem;
+  font-weight: 500;
+}
+
+.hero-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+/* Views (Switcher) */
+.view-panel {
+  display: none;
+  animation: fadeIn 0.3s ease-in-out forwards;
+}
+
+.view-panel.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Section Card Wrappers — Crisp Elevated White Cards */
+.main-card {
+  padding: 2.25rem;
+  margin-bottom: 3.5rem;
+  background: #FFFFFF;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: visible;
+}
+
+/* Bottom decorative wave line on main card */
+.main-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, var(--ocean-dark), var(--ocean-teal), var(--ocean-bright), var(--ocean-cyan));
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.section-title {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
+/* Form Layout Grids */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.grid-5 {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr 1.5fr 1.1fr 1.4fr;
+  gap: 1rem;
+}
+
+.grid-6 {
+  display: grid;
+  grid-template-columns: 0.75fr 0.95fr 1.25fr 1.35fr 0.95fr 1.35fr;
+  gap: 1rem;
+}
+
+@media (max-width: 992px) {
+  .grid-6 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .grid-6 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Verification Result Box */
+.results-container {
+  margin-top: 2rem;
+  display: none;
+}
+
+.results-container.visible {
+  display: block;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.result-summary-card {
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.result-summary-card.match {
+  background: var(--status-success-bg);
+  border: 1.5px solid var(--status-success-border);
+}
+
+.result-summary-card.mismatch {
+  background: var(--status-warning-bg);
+  border: 1.5px solid var(--status-warning-border);
+}
+
+.result-summary-card.error {
+  background: var(--status-error-bg);
+  border: 1.5px solid var(--status-error-border);
+}
+
+.result-icon {
+  font-size: 2.25rem;
+  line-height: 1;
+}
+
+.result-summary-title {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  color: var(--text-primary);
+}
+
+.result-summary-desc {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.checks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.check-card {
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.check-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.check-card-title {
+  font-size: 0.825rem;
+  font-weight: 700;
+  color: var(--ocean-deep);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.check-card-value {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.check-card-note {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* Calculator View Layout */
+.calculator-card {
+  padding: 2.5rem;
+}
+
+.calc-result-box {
+  background: var(--bg-card-subtle);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+  margin-top: 1.75rem;
+}
+
+.calc-breakdown-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 0.95rem;
+}
+
+.calc-breakdown-row:last-child {
+  border-bottom: none;
+  padding-top: 1rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--ocean-dark);
+}
+
+/* Footer & Disclaimers */
+.app-footer {
+  margin-top: auto;
+  border-top: 1px solid rgba(0, 128, 128, 0.2);
+  padding: 2.25rem 0;
+  background: linear-gradient(135deg, #073b4c 0%, #0a4b56 100%);
+  font-size: 0.85rem;
+  color: #a3c8cf;
+  position: relative;
+  z-index: 10;
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  text-align: center;
+}
+
+.disclaimer-box {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: #d8edf0;
+  text-align: left;
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 768px) {
+  .nav-wrapper {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .tab-nav {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .grid-2,
+  .grid-3,
+  .grid-4,
+  .grid-5 {
+    grid-template-columns: 1fr;
+  }
+
+  .main-card {
+    padding: 1.5rem 1rem;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+  }
+}
+
+/* ==========================================================================
+   Print & PDF Audit Certificate Stylesheet (@media print)
+   ========================================================================== */
+@media print {
+  @page {
+    margin: 15mm;
+    size: A4 portrait;
+  }
+
+  body {
+    background: #FFFFFF !important;
+    background-image: none !important;
+    color: #111827 !important;
+    font-size: 11pt;
+  }
+
+  body::after {
+    display: none !important;
+  }
+
+  /* Hide interactive web chrome */
+  .app-header,
+  .hero-section,
+  .step-wizard,
+  .sample-presets-bar,
+  .smart-upload-container,
+  #invoice-verifier-form,
+  .result-action-toolbar,
+  .no-print,
+  .modal-overlay,
+  .app-footer,
+  button,
+  .tab-nav {
+    display: none !important;
+  }
+
+  /* Expand Main Content Container */
+  .container {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .main-card {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+
+  .view-panel {
+    display: none !important;
+  }
+
+  .view-panel.active,
+  #view-verifier {
+    display: block !important;
+  }
+
+  #verification-results {
+    display: block !important;
+  }
+
+  /* Show Print Certificate Elements */
+  .print-certificate-header {
+    display: block !important;
+  }
+
+  .print-certificate-footer {
+    display: block !important;
+  }
+
+  /* Result Summary Banner for Print */
+  .result-summary-card {
+    border: 1.5pt solid #073b4c !important;
+    background: #f8fafc !important;
+    box-shadow: none !important;
+    margin-bottom: 12pt !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Glass Panels and Cards */
+  .glass-panel,
+  .check-card,
+  .item-audit-card {
+    border: 1pt solid #cbd5e1 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    background: #FFFFFF !important;
+  }
+
+  /* Color adjustments for print readability */
+  h1, h2, h3, h4 {
+    color: #073b4c !important;
+  }
+
+  .badge {
+    border: 1pt solid #cbd5e1 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
+

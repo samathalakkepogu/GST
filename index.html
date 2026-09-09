@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GST Invoice Verifier & Calculator — Mathematical Tax Verification</title>
+  <meta name="description" content="VERIFY YOUR INVOICE GST CALCULATIONS">
+  
+  <!-- Google Fonts: Outfit (Headings) & Inter (Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="app-header">
+    <div class="container nav-wrapper">
+      <a href="#" class="brand-logo" aria-label="GST Verifier Home">
+        <div class="brand-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <div class="brand-title-wrap">
+            <span class="brand-name">GST Verifier</span>
+            <span class="brand-engine-tag" title="Multi-Engine Verification Architecture">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+              </svg>
+              <span>Multi Engine</span>
+            </span>
+          </div>
+        </div>
+      </a>
+
+      <!-- Primary Feature Switcher & Tools -->
+      <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+        <nav class="tab-nav" aria-label="Main Navigation">
+          <button class="tab-btn active" data-view="verifier" id="tab-btn-verifier">
+            <span>🔍</span> GST Invoice Verifier
+          </button>
+          <button class="tab-btn" data-view="calculator" id="tab-btn-calculator">
+            <span>🧮</span> GST Calculator
+          </button>
+        </nav>
+        <button type="button" class="btn btn-secondary btn-sm" id="btn-open-history" style="border-radius:var(--radius-full); background:rgba(255,255,255,0.15); border:1.5px solid rgba(255,255,255,0.3); color:#ffffff; font-weight:600; padding:0.5rem 1rem;">
+          <span>📜</span> History (<span id="history-badge-count">0</span>)
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Introduction Section -->
+  <section class="hero-section">
+    <div class="container">
+      <h1 class="hero-title" id="hero-title"><span class="highlight">GST Invoice Verifier</span></h1>
+      <p class="hero-subtitle" id="hero-subtitle">
+        VERIFY YOUR INVOICE GST CALCULATIONS
+      </p>
+    </div>
+  </section>
+
+  <!-- Main Content View Area -->
+  <main class="main-content container">
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 1: INVOICE VERIFICATION (MAIN FEATURE)                              -->
+    <!-- ========================================================================= -->
+    <div class="view-panel active" id="view-verifier">
+      <div class="glass-panel main-card">
+        
+        <!-- Step Wizard Tracker -->
+        <div class="step-wizard" aria-hidden="true">
+          <div class="step-wizard-bar" id="wizard-progress-bar"></div>
+          <div class="step-item active" id="step-node-1">
+            <div class="step-circle">1</div>
+            <span class="step-label">Invoice & States</span>
+          </div>
+          <div class="step-item" id="step-node-2">
+            <div class="step-circle">2</div>
+            <span class="step-label">Invoice Items</span>
+          </div>
+          <div class="step-item" id="step-node-3">
+            <div class="step-circle">3</div>
+            <span class="step-label">Verification Result</span>
+          </div>
+        </div>
+
+        <form id="invoice-verifier-form" onsubmit="return false;">
+          
+          <!-- Step 1: Invoice Information & State Details -->
+          <div class="form-section" id="form-step-1">
+            <div class="section-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:0.75rem;">
+              <div>
+                <h2 class="section-title"><span>📅</span> 1. Invoice & Jurisdiction Information</h2>
+                <p class="section-subtitle">Transaction type (Intra-State vs Inter-State) is determined from seller and buyer locations.</p>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm page-reset-btn" id="btn-reset-verifier" title="Reset all fields and start a new entry">
+                <span>🔄</span> Reset Form
+              </button>
+            </div>
+
+            <div class="grid-4" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem; margin-top: 1.25rem;">
+              <!-- Invoice Date -->
+              <div class="form-group" style="position:relative;">
+                <label class="form-label" for="invoice-date">
+                  Invoice Date (DD/MM/YYYY) <span class="required-mark">*</span>
+                </label>
+                <div style="position:relative; display:flex; align-items:center;">
+                  <input type="text" id="invoice-date" class="form-input" placeholder="DD/MM/YYYY" maxlength="10" required style="padding-right: 2.75rem; cursor:pointer;" autocomplete="off">
+                  <button type="button" id="btn-calendar-trigger" style="position:absolute; right:0.35rem; width:2.1rem; height:2.1rem; background:var(--ocean-tint); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); cursor:pointer; font-size:1.1rem; display:flex; align-items:center; justify-content:center; padding:0; z-index:10; transition:all 0.15s ease;" title="Click to choose date from calendar" aria-label="Open calendar">
+                    📅
+                  </button>
+                </div>
+                <!-- Custom Interactive Calendar Popup Dropdown -->
+                <div id="custom-calendar-popup" class="custom-calendar-popup" role="dialog" aria-label="Choose invoice date"></div>
+              </div>
+
+              <!-- Invoice Number (Optional) -->
+              <div class="form-group">
+                <label class="form-label" for="invoice-number">
+                  Invoice Number <span style="color:var(--text-muted); font-size:0.8rem;">(Optional)</span>
+                </label>
+                <input type="text" id="invoice-number" class="form-input" placeholder="e.g. INV-2026-001" autocomplete="off">
+              </div>
+
+              <!-- Seller State -->
+              <div class="form-group">
+                <label class="form-label" for="seller-state">
+                  Seller State / UT <span class="required-mark">*</span>
+                </label>
+                <select id="seller-state" class="form-select" required>
+                  <option value="" selected>-- Select Seller State --</option>
+                  <option value="35">Andaman & Nicobar Islands (UT)</option>
+                  <option value="37">Andhra Pradesh</option>
+                  <option value="12">Arunachal Pradesh</option>
+                  <option value="18">Assam</option>
+                  <option value="10">Bihar</option>
+                  <option value="04">Chandigarh (UT)</option>
+                  <option value="22">Chhattisgarh</option>
+                  <option value="26">Dadra & Nagar Haveli and Daman & Diu (UT)</option>
+                  <option value="07">Delhi (UT)</option>
+                  <option value="30">Goa</option>
+                  <option value="24">Gujarat</option>
+                  <option value="06">Haryana</option>
+                  <option value="02">Himachal Pradesh</option>
+                  <option value="01">Jammu & Kashmir (UT)</option>
+                  <option value="20">Jharkhand</option>
+                  <option value="29">Karnataka</option>
+                  <option value="32">Kerala</option>
+                  <option value="38">Ladakh (UT)</option>
+                  <option value="31">Lakshadweep (UT)</option>
+                  <option value="23">Madhya Pradesh</option>
+                  <option value="27">Maharashtra</option>
+                  <option value="14">Manipur</option>
+                  <option value="17">Meghalaya</option>
+                  <option value="15">Mizoram</option>
+                  <option value="13">Nagaland</option>
+                  <option value="21">Odisha</option>
+                  <option value="97">Other Territory (UT)</option>
+                  <option value="34">Puducherry (UT)</option>
+                  <option value="03">Punjab</option>
+                  <option value="08">Rajasthan</option>
+                  <option value="11">Sikkim</option>
+                  <option value="33">Tamil Nadu</option>
+                  <option value="36">Telangana</option>
+                  <option value="16">Tripura</option>
+                  <option value="09">Uttar Pradesh</option>
+                  <option value="05">Uttarakhand</option>
+                  <option value="19">West Bengal</option>
+                </select>
+              </div>
+
+              <!-- Buyer State -->
+              <div class="form-group">
+                <label class="form-label" for="buyer-state">
+                  Buyer State / UT <span class="required-mark">*</span>
+                </label>
+                <select id="buyer-state" class="form-select" required>
+                  <option value="" selected>-- Select Buyer State --</option>
+                  <option value="35">Andaman & Nicobar Islands (UT)</option>
+                  <option value="37">Andhra Pradesh</option>
+                  <option value="12">Arunachal Pradesh</option>
+                  <option value="18">Assam</option>
+                  <option value="10">Bihar</option>
+                  <option value="04">Chandigarh (UT)</option>
+                  <option value="22">Chhattisgarh</option>
+                  <option value="26">Dadra & Nagar Haveli and Daman & Diu (UT)</option>
+                  <option value="07">Delhi (UT)</option>
+                  <option value="30">Goa</option>
+                  <option value="24">Gujarat</option>
+                  <option value="06">Haryana</option>
+                  <option value="02">Himachal Pradesh</option>
+                  <option value="01">Jammu & Kashmir (UT)</option>
+                  <option value="20">Jharkhand</option>
+                  <option value="29">Karnataka</option>
+                  <option value="32">Kerala</option>
+                  <option value="38">Ladakh (UT)</option>
+                  <option value="31">Lakshadweep (UT)</option>
+                  <option value="23">Madhya Pradesh</option>
+                  <option value="27">Maharashtra</option>
+                  <option value="14">Manipur</option>
+                  <option value="17">Meghalaya</option>
+                  <option value="15">Mizoram</option>
+                  <option value="13">Nagaland</option>
+                  <option value="21">Odisha</option>
+                  <option value="97">Other Territory (UT)</option>
+                  <option value="34">Puducherry (UT)</option>
+                  <option value="03">Punjab</option>
+                  <option value="08">Rajasthan</option>
+                  <option value="11">Sikkim</option>
+                  <option value="33">Tamil Nadu</option>
+                  <option value="36">Telangana</option>
+                  <option value="16">Tripura</option>
+                  <option value="09">Uttar Pradesh</option>
+                  <option value="05">Uttarakhand</option>
+                  <option value="19">West Bengal</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="jurisdiction-badge-container" style="margin-top: 0.75rem; display:none;">
+              <span class="badge badge-info" id="jurisdiction-badge"></span>
+            </div>
+          </div>
+
+          <hr style="border:0; border-top:1px solid var(--border-subtle); margin: 2rem 0;">
+
+          <!-- Step 2: Invoice Items Section -->
+          <div class="form-section" id="form-step-2">
+            <div class="section-header">
+              <div>
+                <h2 class="section-title"><span>📦</span> 2. Invoice Products & Services</h2>
+                <p class="section-subtitle">Enter product description, quantity, price per unit, total taxable value, GST rate %, and GST charged.</p>
+              </div>
+            </div>
+
+            <!-- Items Container -->
+            <div id="invoice-items-list">
+              <!-- Item Card Template Instance (Item #1) -->
+              <div class="item-card" data-item-index="0" id="item-card-0">
+                <div class="item-card-header">
+                  <span class="item-card-title">
+                    <span>🏷️</span> <span class="item-card-num-text">Item #1</span>
+                  </span>
+                  <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <button type="button" class="btn btn-secondary btn-sm btn-add-item-card" title="Add another item">
+                      <span>+</span> Add Another Item
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm btn-icon-only btn-remove-item" title="Remove Item" style="display:none;">
+                      ✕
+                    </button>
+                  </div>
+                </div>
+
+                <div class="grid-3">
+                  <!-- Product / Service Description -->
+                  <div class="form-group">
+                    <label class="form-label" for="item-name-0">
+                      Product / Service Description <span class="required-mark">*</span>
+                    </label>
+                    <input type="text" id="item-name-0" class="form-input item-input-name" placeholder="e.g. Office Laptop, Consulting, Supplies..." autocomplete="off" required>
+                  </div>
+
+                  <!-- Optional HSN/SAC -->
+                  <div class="form-group">
+                    <label class="form-label" for="item-hsn-0">
+                      HSN / SAC Code <span style="color:var(--text-muted); font-size:0.8rem;">(Optional)</span>
+                    </label>
+                    <input type="text" id="item-hsn-0" class="form-input item-input-hsn" placeholder="e.g. 8471, 9983">
+                  </div>
+
+                  <!-- Optional GSTIN -->
+                  <div class="form-group">
+                    <label class="form-label" for="item-gstin-0">
+                      Seller GSTIN <span style="color:var(--text-muted); font-size:0.8rem;">(Optional)</span>
+                    </label>
+                    <input type="text" id="item-gstin-0" class="form-input item-input-gstin" placeholder="e.g. 29AAAAA0000A1Z5" maxlength="15" style="text-transform:uppercase;">
+                  </div>
+                </div>
+
+                <div class="grid-6">
+                  <!-- Quantity -->
+                  <div class="form-group">
+                    <label class="form-label" for="item-qty-0">
+                      Quantity <span class="required-mark">*</span>
+                    </label>
+                    <input type="number" step="1" min="1" id="item-qty-0" class="form-input item-input-qty" placeholder="1" required>
+                  </div>
+
+                  <!-- Unit of Measurement (UQC) -->
+                  <div class="form-group">
+                    <label class="form-label" for="item-unit-0">
+                      Unit <span style="color:var(--text-muted); font-size:0.8rem;">(UQC)</span>
+                    </label>
+                    <select id="item-unit-0" class="form-select item-input-unit">
+                      <option value="Pcs" selected>Pcs (Pieces)</option>
+                      <option value="Nos">Nos (Numbers)</option>
+                      <option value="Kg">Kg (Kilograms)</option>
+                      <option value="Gms">Gms (Grams)</option>
+                      <option value="Ltr">Ltr (Litres)</option>
+                      <option value="Mtr">Mtr (Metres)</option>
+                      <option value="Box">Box (Boxes)</option>
+                      <option value="Pkt">Pkt (Packets)</option>
+                      <option value="Set">Set (Sets)</option>
+                      <option value="Doz">Doz (Dozens)</option>
+                      <option value="Quintal">Quintal</option>
+                      <option value="Ton">Ton (Tonnes)</option>
+                      <option value="Bag">Bag (Bags)</option>
+                      <option value="Hrs">Hrs (Hours)</option>
+                      <option value="Month">Month</option>
+                      <option value="Units">Units (General)</option>
+                    </select>
+                  </div>
+
+                  <!-- Price per Unit -->
+                  <div class="form-group">
+                    <label class="form-label" for="item-unit-price-0">
+                      Unit Price (₹)
+                    </label>
+                    <div class="input-with-prefix">
+                      <span class="input-prefix">₹</span>
+                      <input type="number" step="0.01" min="0" id="item-unit-price-0" class="form-input item-input-unit-price" placeholder="10,000.00">
+                    </div>
+                  </div>
+
+                  <!-- Total Taxable Amount -->
+                  <div class="form-group">
+                    <label class="form-label" for="item-taxable-0">
+                      Taxable Value (₹) <span class="required-mark">*</span>
+                    </label>
+                    <div class="input-with-prefix">
+                      <span class="input-prefix">₹</span>
+                      <input type="number" step="0.01" min="0" id="item-taxable-0" class="form-input item-input-taxable" placeholder="10,000.00" required>
+                    </div>
+                  </div>
+
+                  <!-- Invoice GST Rate % -->
+                  <div class="form-group">
+                    <label class="form-label" for="item-rate-0">
+                      GST Rate (%) <span class="required-mark">*</span>
+                    </label>
+                    <input type="number" step="0.01" min="0" id="item-rate-0" class="form-input item-input-rate" placeholder="e.g. 18" required>
+                  </div>
+
+                  <!-- Invoice GST Amount Charged -->
+                  <div class="form-group">
+                    <label class="form-label" for="item-gst-0">
+                      GST Charged (₹) <span class="required-mark">*</span>
+                    </label>
+                    <div class="input-with-prefix">
+                      <span class="input-prefix">₹</span>
+                      <input type="number" step="0.01" min="0" id="item-gst-0" class="form-input item-input-gst" placeholder="e.g. 1,800.00" required>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <hr style="border:0; border-top:1px solid var(--border-subtle); margin: 2rem 0;">
+
+          <!-- Step 3: Total & Verify Action -->
+          <div class="form-section" id="form-step-3">
+            <div class="grid-2" style="align-items: flex-end;">
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label" for="invoice-grand-total">
+                  Total Invoice Amount (₹) <span style="color:var(--text-muted); font-size:0.8rem;">(Optional)</span>
+                </label>
+                <div class="input-with-prefix">
+                  <span class="input-prefix">₹</span>
+                  <input type="number" step="0.01" min="0" id="invoice-grand-total" class="form-input" placeholder="e.g. 11,800.00">
+                </div>
+              </div>
+
+              <div>
+                <button type="button" class="btn btn-primary btn-lg" id="btn-verify-invoice" style="width:100%;">
+                  <span>🚀</span> Verify GST Calculation
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </form>
+
+        <!-- Live Verification Results Section Container -->
+        <div class="results-container" id="verification-results">
+          <!-- Dynamic Content rendered by verifier engine -->
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 2: GST CALCULATOR (SECONDARY FEATURE)                               -->
+    <!-- ========================================================================= -->
+    <div class="view-panel" id="view-calculator">
+      <div class="glass-panel main-card container-narrow calculator-card">
+        
+        <div class="section-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem;">
+          <div>
+            <h2 class="section-title"><span>🧮</span> GST Calculator</h2>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm page-reset-btn" id="btn-reset-calculator" title="Reset calculator to defaults">
+            <span>🔄</span> Reset
+          </button>
+        </div>
+
+        <form id="gst-calculator-form" onsubmit="return false;">
+          <!-- Price Calculation Mode: Exclusive vs Inclusive -->
+          <div class="form-group" style="margin-bottom: 1.25rem;">
+            <label class="form-label" style="font-weight:700; color:var(--text-primary);">GST Calculation Mode</label>
+            <div class="price-mode-toggle" id="calc-mode-toggle">
+              <button type="button" class="mode-toggle-btn active" data-mode="exclusive" id="btn-calc-exclusive">
+                Exclusive
+              </button>
+              <button type="button" class="mode-toggle-btn" data-mode="inclusive" id="btn-calc-inclusive">
+                Inclusive
+              </button>
+            </div>
+            <div class="mode-hint-text" id="calc-mode-hint" style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.45rem; padding:0 0.25rem;">
+              GST is added separately to the base price.
+            </div>
+          </div>
+
+          <!-- Amount Input -->
+          <div class="form-group">
+            <label class="form-label" for="calc-amount" id="calc-amount-label">
+              Taxable Amount (₹) <span class="required-mark">*</span>
+            </label>
+            <div class="input-with-prefix">
+              <span class="input-prefix">₹</span>
+              <input type="number" step="0.01" min="0" id="calc-amount" class="form-input" placeholder="e.g. 10,000.00">
+            </div>
+          </div>
+
+          <!-- GST Rate Chips -->
+          <div class="form-group">
+            <label class="form-label">Select GST Rate (%)</label>
+            <div class="rate-chips-container" id="calc-rate-chips">
+              <button type="button" class="rate-chip" data-rate="0">0%</button>
+              <button type="button" class="rate-chip" data-rate="5">5%</button>
+              <button type="button" class="rate-chip" data-rate="12">12%</button>
+              <button type="button" class="rate-chip active" data-rate="18">18%</button>
+              <button type="button" class="rate-chip" data-rate="28">28%</button>
+              <button type="button" class="rate-chip" data-rate="custom">Custom</button>
+            </div>
+          </div>
+
+          <!-- Custom Rate Input -->
+          <div class="form-group" id="calc-custom-rate-group" style="display:none;">
+            <label class="form-label" for="calc-custom-rate">Custom GST Rate (%)</label>
+            <input type="number" step="0.01" min="0" max="100" id="calc-custom-rate" class="form-input" placeholder="e.g. 7.5">
+          </div>
+        </form>
+
+        <!-- Calculator Result Breakdown Box -->
+        <div class="calc-result-box" id="calc-result-box">
+          <div class="calc-breakdown-row">
+            <span style="color:var(--text-secondary);" id="calc-lbl-base">Base Taxable Amount:</span>
+            <strong id="calc-res-base" style="font-family:var(--font-mono); font-size:1.1rem;">₹0.00</strong>
+          </div>
+          <div class="calc-breakdown-row">
+            <span style="color:var(--text-secondary);" id="calc-lbl-tax">Total GST Amount (18%):</span>
+            <strong id="calc-res-tax" style="font-family:var(--font-mono); font-size:1.1rem; color:var(--status-warning-text);">₹0.00</strong>
+          </div>
+          <div class="calc-breakdown-row" id="calc-row-split">
+            <span style="color:var(--text-muted); font-size:0.85rem;" id="calc-lbl-split">CGST (9%) + SGST/UTGST (9%):</span>
+            <span id="calc-res-split" style="font-family:var(--font-mono); font-size:0.9rem; color:var(--text-secondary);">₹0.00 + ₹0.00</span>
+          </div>
+          <div class="calc-breakdown-row" style="border-top:1.5px dashed var(--border-subtle); padding-top:0.75rem; margin-top:0.5rem;">
+            <span id="calc-lbl-total" style="font-weight:700; color:var(--text-primary);">Grand Total:</span>
+            <strong id="calc-res-total" style="font-family:var(--font-mono); font-size:1.25rem; color:var(--ocean-deep);">₹0.00</strong>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Saved Invoice History Modal -->
+  <div class="modal-overlay" id="history-modal" role="dialog" aria-modal="true" aria-labelledby="modal-history-title">
+    <div class="modal-content" style="max-width:720px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-history-title">📜 Saved Invoice Verifications</h3>
+        <button type="button" class="btn btn-secondary btn-sm btn-icon-only" id="btn-close-history-modal">✕</button>
+      </div>
+      <div class="modal-body" style="max-height:60vh; overflow-y:auto;">
+        <div id="history-items-container">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+      <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+        <div style="display:flex; gap:0.5rem;">
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-export-history-pdf" title="Export saved invoice history as PDF">📄 Export PDF</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-clear-history" style="color:var(--status-error-text); border-color:var(--status-error-border);">🗑️ Clear All</button>
+        </div>
+        <button type="button" class="btn btn-secondary" id="btn-cancel-history-modal">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Disclaimer Footer -->
+  <footer class="app-footer">
+    <div class="container footer-content">
+      <div class="disclaimer-box">
+        <strong>Disclaimer:</strong> GST Invoice Verifier is an informational calculation-verification tool. Results are based on the invoice information entered by the user and the calculation rules implemented in the application. Product classification, exemptions, conditions, place-of-supply rules, and other transaction-specific provisions may affect the actual GST treatment. This tool does not constitute legal, accounting, or tax advice.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application Scripts (Compatible with local file:// and web servers) -->
+  <script src="js/ui/formatters.js"></script>
+  <script src="js/data/statesData.js"></script>
+  <script src="js/services/verifierService.js"></script>
+  <script src="js/services/calculatorService.js"></script>
+  <script src="js/services/historyService.js"></script>
+  <script src="js/ui/components.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

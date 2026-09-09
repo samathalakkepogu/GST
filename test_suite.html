@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GST Invoice Verifier & Calculator — Automated Test Suite</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; background: #0f172a; color: #f8fafc; padding: 2rem; margin: 0; }
+    h1 { color: #00a896; margin-top: 0; }
+    #test-summary { background: #1e293b; padding: 1rem 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid #334155; font-size: 1.1rem; }
+    #test-log { font-family: "SFMono-Regular", Consolas, Menlo, monospace; background: #0b1120; padding: 1.5rem; border-radius: 8px; border: 1px solid #1e293b; white-space: pre-wrap; font-size: 0.95rem; line-height: 1.6; max-height: 70vh; overflow-y: auto; }
+    .pass { color: #10b981; font-weight: bold; }
+    .fail { color: #ef4444; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>🧪 GST Invoice Verifier & Calculator Test Suite</h1>
+  <div id="test-summary">Running tests...</div>
+  <div id="test-log"></div>
+  
+  <!-- App Markup Fixture for DOM Integration Tests -->
+  <div id="app-fixture" style="display:none;"></div>
+
+  <!-- Scripts Under Test -->
+  <script src="js/ui/formatters.js"></script>
+  <script src="js/data/statesData.js"></script>
+  <script src="js/services/verifierService.js"></script>
+  <script src="js/services/calculatorService.js"></script>
+  <script src="js/services/historyService.js"></script>
+  <script src="js/ui/components.js"></script>
+
+  <script>
+    const logEl = document.getElementById('test-log');
+    const summaryEl = document.getElementById('test-summary');
+    let passCount = 0;
+    let failCount = 0;
+
+    function log(msg, pass = true) {
+      if (pass) {
+        passCount++;
+        logEl.innerHTML += `<span class="pass">✅ PASS:</span> ${msg}\n`;
+      } else {
+        failCount++;
+        logEl.innerHTML += `<span class="fail">❌ FAIL:</span> ${msg}\n`;
+      }
+      summaryEl.innerHTML = `<strong>Tests Passed:</strong> ${passCount} | <strong>Failed:</strong> ${failCount} | <strong>Total:</strong> ${passCount + failCount}`;
+      if (failCount > 0) {
+        summaryEl.style.borderColor = '#ef4444';
+        summaryEl.style.background = '#450a0a';
+      } else {
+        summaryEl.style.borderColor = '#10b981';
+        summaryEl.style.background = '#064e3b';
+      }
+    }
+
+    function assert(desc, condition) {
+      log(desc, !!condition);
+    }
+
+    console.log("Starting GST test suite...");
+
+    // =========================================================================
+    // 1. CORE WINDOW EXPORTS & MODULE TESTS
+    // =========================================================================
+    assert("window.Formatters is defined and has formatINR", typeof window.Formatters === 'object' && typeof window.Formatters.formatINR === 'function');
+    assert("window.StatesService is defined and has getAllStates & determineJurisdiction", typeof window.StatesService === 'object' && typeof window.StatesService.getAllStates === 'function');
+    assert("window.VerifierService is defined and has verifyInvoice", typeof window.VerifierService === 'object' && typeof window.VerifierService.verifyInvoice === 'function');
+    assert("window.CalculatorService is defined and has addGst & removeGst", typeof window.CalculatorService === 'object' && typeof window.CalculatorService.addGst === 'function');
+    assert("window.HistoryService is defined and has getAllInvoices", typeof window.HistoryService === 'object' && typeof window.HistoryService.getAllInvoices === 'function');
+    assert("window.UIComponents is defined and has renderVerificationResult", typeof window.UIComponents === 'object' && typeof window.UIComponents.renderVerificationResult === 'function');
+
+    // =========================================================================
+    // 2. REQUIRED TEST 1: Intra-State Verification
+    // Taxable: ₹10,000, Rate: 18%, Seller: Karnataka, Buyer: Karnataka, Invoice GST: ₹1,800
+    // Expected: CGST = ₹900, SGST = ₹900, Total GST = ₹1,800, Result = Match
+    // =========================================================================
+    const test1 = window.VerifierService.verifyInvoice({
+      invoiceDate: '2026-09-07',
+      sellerStateCode: '29', // Karnataka
+      buyerStateCode: '29',  // Karnataka
+      items: [
+        { name: 'Office Supplies', quantity: 1, unitPrice: 10000, taxableAmount: 10000, invoiceGstRate: 18, invoiceGstAmount: 1800 }
+      ],
+      invoiceGrandTotal: 11800
+    });
+
+    assert("Test 1 (Intra-State): Overall status is MATCH", test1.summary.overallVerdict === 'MATCH');
+    assert("Test 1 (Intra-State): Jurisdiction is Intra-State (isInterState is false)", test1.jurisdiction.isInterState === false);
+    assert("Test 1 (Intra-State): Expected CGST = ₹900", test1.items[0].taxBreakdown.expectedCgst === 900);
+    assert("Test 1 (Intra-State): Expected SGST = ₹900", test1.items[0].taxBreakdown.expectedSgst === 900);
+    assert("Test 1 (Intra-State): Expected Total GST = ₹1,800", test1.summary.totalExpectedGst === 1800);
+    assert("Test 1 (Intra-State): Expected Grand Total = ₹11,800", test1.summary.expectedGrandTotal === 11800);
+    assert("Test 1 (Intra-State): Difference is ₹0.00", test1.summary.gstDifference === 0);
+    assert("Test 1 (Intra-State): Friendly match message generated", test1.summary.verdictMessage.includes('matches the entered invoice details'));
+
+    // =========================================================================
+    // 3. REQUIRED TEST 2: Inter-State Verification
+    // Taxable: ₹10,000, Rate: 18%, Seller: Karnataka, Buyer: Andhra Pradesh, Invoice GST: ₹1,800
+    // Expected: IGST = ₹1,800, Total GST = ₹1,800, Grand Total = ₹11,800, Result = Match
+    // =========================================================================
+    const test2 = window.VerifierService.verifyInvoice({
+      invoiceDate: '2026-09-07',
+      sellerStateCode: '29', // Karnataka
+      buyerStateCode: '37',  // Andhra Pradesh
+      items: [
+        { name: 'IT Equipment', quantity: 1, unitPrice: 10000, taxableAmount: 10000, invoiceGstRate: 18, invoiceGstAmount: 1800 }
+      ],
+      invoiceGrandTotal: 11800
+    });
+
+    assert("Test 2 (Inter-State): Overall status is MATCH", test2.summary.overallVerdict === 'MATCH');
+    assert("Test 2 (Inter-State): Jurisdiction is Inter-State (isInterState is true)", test2.jurisdiction.isInterState === true);
+    assert("Test 2 (Inter-State): Expected IGST = ₹1,800", test2.items[0].taxBreakdown.expectedIgst === 1800);
+    assert("Test 2 (Inter-State): CGST & SGST are ₹0 for inter-state", test2.items[0].taxBreakdown.expectedCgst === 0 && test2.items[0].taxBreakdown.expectedSgst === 0);
+    assert("Test 2 (Inter-State): Expected Total GST = ₹1,800", test2.summary.totalExpectedGst === 1800);
+    assert("Test 2 (Inter-State): Expected Grand Total = ₹11,800", test2.summary.expectedGrandTotal === 11800);
+
+    // =========================================================================
+    // 4. REQUIRED TEST 3: Mismatch Verification
+    // Taxable: ₹10,000, Rate: 18%, Invoice GST: ₹1,500
+    // Expected GST: ₹1,800, Difference: ₹300, Result: Possible GST calculation mismatch
+    // =========================================================================
+    const test3 = window.VerifierService.verifyInvoice({
+      invoiceDate: '2026-09-07',
+      sellerStateCode: '29',
+      buyerStateCode: '29',
+      items: [
+        { name: 'Consulting Services', quantity: 1, unitPrice: 10000, taxableAmount: 10000, invoiceGstRate: 18, invoiceGstAmount: 1500 }
+      ],
+      invoiceGrandTotal: 11500
+    });
+
+    assert("Test 3 (Mismatch): Overall status is MISMATCH", test3.summary.overallVerdict === 'MISMATCH');
+    assert("Test 3 (Mismatch): Expected GST is ₹1,800", test3.summary.totalExpectedGst === 1800);
+    assert("Test 3 (Mismatch): Invoice GST charged is ₹1,500", test3.summary.totalInvoiceGst === 1500);
+    assert("Test 3 (Mismatch): Difference is ₹300", test3.summary.gstDifference === 300);
+    assert("Test 3 (Mismatch): Result title is 'Possible GST calculation mismatch'", test3.summary.verdictTitle === 'Possible GST calculation mismatch');
+    assert("Test 3 (Mismatch): Friendly mismatch message asks to compare expected GST with invoice", test3.summary.verdictMessage.includes('Possible GST calculation mismatch'));
+
+    // =========================================================================
+    // 5. QUANTITY > 1 VERIFICATION TEST
+    // Quantity: 2, Unit Price: ₹5,000 -> Taxable: ₹10,000, Rate: 18% -> Expected GST: ₹1,800
+    // =========================================================================
+    const testQty = window.VerifierService.verifyInvoice({
+      invoiceDate: '2026-09-07',
+      sellerStateCode: '29',
+      buyerStateCode: '29',
+      items: [
+        { name: 'Dual Monitors', quantity: 2, unitPrice: 5000, taxableAmount: 10000, invoiceGstRate: 18, invoiceGstAmount: 1800 }
+      ],
+      invoiceGrandTotal: 11800
+    });
+
+    assert("Test Quantity (Qty = 2): Overall status is MATCH", testQty.summary.overallVerdict === 'MATCH');
+    assert("Test Quantity (Qty = 2): Item quantity is preserved as 2", testQty.items[0].quantity === 2);
+    assert("Test Quantity (Qty = 2): Unit price is ₹5,000", testQty.items[0].unitPrice === 5000);
+    assert("Test Quantity (Qty = 2): Taxable amount is ₹10,000 (2 × ₹5,000)", testQty.items[0].taxableAmount === 10000);
+    assert("Test Quantity (Qty = 2): Expected GST is calculated on total taxable ₹10,000 = ₹1,800", testQty.summary.totalExpectedGst === 1800);
+
+    // =========================================================================
+    // 6. REQUIRED TEST 4: Zero GST Verification
+    // Taxable: ₹10,000, Rate: 0%, Invoice GST: ₹0, Result = Match
+    // =========================================================================
+    const test4 = window.VerifierService.verifyInvoice({
+      invoiceDate: '2026-09-07',
+      sellerStateCode: '27',
+      buyerStateCode: '27',
+      items: [
+        { name: 'Fresh Vegetables / Grains', quantity: 1, taxableAmount: 10000, invoiceGstRate: 0, invoiceGstAmount: 0 }
+      ],
+      invoiceGrandTotal: 10000
+    });
+
+    assert("Test 4 (Zero GST): Overall status is MATCH", test4.summary.overallVerdict === 'MATCH');
+    assert("Test 4 (Zero GST): Expected GST is ₹0", test4.summary.totalExpectedGst === 0);
+    assert("Test 4 (Zero GST): Difference is ₹0", test4.summary.gstDifference === 0);
+    assert("Test 4 (Zero GST): Grand Total is ₹10,000", test4.summary.expectedGrandTotal === 10000);
+
+    // =========================================================================
+    // 7. REQUIRED TEST 5: Decimal Taxable Amount & Rounding
+    // Taxable: ₹1,234.56 @ 18%
+    // Expected GST = 1234.56 * 0.18 = 222.2208 -> ₹222.22, Grand Total = ₹1,456.78
+    // =========================================================================
+    const test5 = window.VerifierService.verifyInvoice({
+      invoiceDate: '2026-09-07',
+      sellerStateCode: '29',
+      buyerStateCode: '29',
+      items: [
+        { name: 'Custom Hardware Component', quantity: 1, taxableAmount: 1234.56, invoiceGstRate: 18, invoiceGstAmount: 222.22 }
+      ],
+      invoiceGrandTotal: 1456.78
+    });
+
+    assert("Test 5 (Decimal): Overall status is MATCH", test5.summary.overallVerdict === 'MATCH');
+    assert("Test 5 (Decimal): Expected GST rounds to ₹222.22", test5.summary.totalExpectedGst === 222.22);
+    assert("Test 5 (Decimal): Expected Grand Total rounds to ₹1,456.78", test5.summary.expectedGrandTotal === 1456.78);
+    assert("Test 5 (Decimal): Difference is ₹0", test5.summary.gstDifference === 0);
+
+    // =========================================================================
+    // 8. GST CALCULATOR SERVICE TESTS
+    // =========================================================================
+    // 8a. Intra-State Add GST (Exclusive Mode: ₹10,000 @ 18%)
+    const calcIntraAdd = window.CalculatorService.addGst(10000, 18, 'intra');
+    assert("Calculator Intra Add: Base = ₹10,000, GST = ₹1,800, Total = ₹11,800", calcIntraAdd.baseAmount === 10000 && calcIntraAdd.gstAmount === 1800 && calcIntraAdd.totalAmount === 11800);
+    assert("Calculator Intra Add: CGST = ₹900, SGST = ₹900, IGST = 0", calcIntraAdd.cgst === 900 && calcIntraAdd.sgst === 900 && calcIntraAdd.igst === 0);
+
+    // 8b. Inter-State Add GST (Exclusive Mode: ₹10,000 @ 18%)
+    const calcInterAdd = window.CalculatorService.addGst(10000, 18, 'inter');
+    assert("Calculator Inter Add: Base = ₹10,000, GST = ₹1,800, Total = ₹11,800", calcInterAdd.baseAmount === 10000 && calcInterAdd.gstAmount === 1800 && calcInterAdd.totalAmount === 11800);
+    assert("Calculator Inter Add: IGST = ₹1,800, CGST = 0, SGST = 0", calcInterAdd.igst === 1800 && calcInterAdd.cgst === 0 && calcInterAdd.sgst === 0);
+
+    // 8c. 5% GST Add GST (Exclusive Mode: ₹1,000 @ 5%)
+    const calc5Add = window.CalculatorService.addGst(1000, 5, 'intra');
+    assert("Calculator 5% GST: Base = ₹1,000, GST = ₹50, Total = ₹1,050", calc5Add.baseAmount === 1000 && calc5Add.gstAmount === 50 && calc5Add.totalAmount === 1050);
+
+    // 8d. 28% GST Add GST (Exclusive Mode: ₹5,000 @ 28%)
+    const calc28Add = window.CalculatorService.addGst(5000, 28, 'intra');
+    assert("Calculator 28% GST: Base = ₹5,000, GST = ₹1,400, Total = ₹6,400", calc28Add.baseAmount === 5000 && calc28Add.gstAmount === 1400 && calc28Add.totalAmount === 6400);
+
+    // 8e. Intra-State Remove GST (Inclusive Mode: ₹11,800 @ 18%)
+    const calcIntraRemove = window.CalculatorService.removeGst(11800, 18, 'intra');
+    assert("Calculator Intra Remove (Inclusive): Total = ₹11,800, Base = ₹10,000, GST = ₹1,800", calcIntraRemove.totalAmount === 11800 && calcIntraRemove.baseAmount === 10000 && calcIntraRemove.gstAmount === 1800);
+    assert("Calculator Intra Remove (Inclusive): CGST = ₹900, SGST = ₹900, IGST = 0", calcIntraRemove.cgst === 900 && calcIntraRemove.sgst === 900 && calcIntraRemove.igst === 0);
+
+    // 8f. Inter-State Remove GST (Inclusive Mode: ₹11,800 @ 18%)
+    const calcInterRemove = window.CalculatorService.removeGst(11800, 18, 'inter');
+    assert("Calculator Inter Remove (Inclusive): Total = ₹11,800, Base = ₹10,000, IGST = ₹1,800", calcInterRemove.totalAmount === 11800 && calcInterRemove.baseAmount === 10000 && calcInterRemove.igst === 1800);
+    assert("Calculator Inter Remove (Inclusive): CGST = 0, SGST = 0", calcInterRemove.cgst === 0 && calcInterRemove.sgst === 0);
+
+    // 8g. 5% GST Remove GST (Inclusive Mode: ₹1,050 @ 5%)
+    const calc5Remove = window.CalculatorService.removeGst(1050, 5, 'intra');
+    assert("Calculator 5% GST Remove (Inclusive): Total = ₹1,050, Base = ₹1,000, GST = ₹50", calc5Remove.totalAmount === 1050 && calc5Remove.baseAmount === 1000 && calc5Remove.gstAmount === 50);
+
+    // 8h. 28% GST Remove GST (Inclusive Mode: ₹6,400 @ 28%)
+    const calc28Remove = window.CalculatorService.removeGst(6400, 28, 'intra');
+    assert("Calculator 28% GST Remove (Inclusive): Total = ₹6,400, Base = ₹5,000, GST = ₹1,400", calc28Remove.totalAmount === 6400 && calc28Remove.baseAmount === 5000 && calc28Remove.gstAmount === 1400);
+
+    // =========================================================================
+    // 9. VERIFY GST RATE IN TOTAL & GRAND TOTAL ROWS
+    // =========================================================================
+    const renderedHtml = window.UIComponents.renderVerificationResult(test1);
+    assert("Verification Table renders Total row with GST Rate (18%)", renderedHtml.includes('<td style="border:none; text-align:center; font-family:var(--font-mono); font-weight:700;">18%</td>'));
+    assert("Verification Table renders Grand Total row with GST Rate (18%)", renderedHtml.includes('<td style="border:none; text-align:center; font-family:var(--font-mono); font-weight:800; color:var(--ocean-deep);">18%</td>'));
+
+    // =========================================================================
+    // 10. HISTORY SERVICE PERSISTENCE TEST
+    // =========================================================================
+    const savedEntry = window.HistoryService.saveInvoice({
+      invoiceDate: '2026-09-07',
+      invoiceNumber: 'INV-TEST-001',
+      sellerStateCode: '29',
+      buyerStateCode: '29',
+      sellerGstin: '29AAAAA0000A1Z5',
+      items: [{ name: 'Test Item', quantity: 1, taxableAmount: 1000, invoiceGstRate: 18, invoiceGstAmount: 180 }],
+      grandTotal: 1180,
+      verdict: 'MATCH',
+      verdictTitle: 'GST calculation matches'
+    });
+    assert("HistoryService saves invoiceNumber correctly", savedEntry.invoiceNumber === 'INV-TEST-001');
+    assert("HistoryService saves grandTotal accurately", savedEntry.grandTotal === 1180);
+    assert("HistoryService saves line items", savedEntry.items && savedEntry.items.length === 1);
+
+    // =========================================================================
+    // 11. HTML DOM INTEGRATION & CLEANUP VERIFICATION
+    // =========================================================================
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', 'index.html', false);
+    try {
+      xhr.send();
+      if (xhr.status === 200 || xhr.status === 0) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(xhr.responseText, 'text/html');
+        document.getElementById('app-fixture').innerHTML = doc.body.innerHTML;
+
+        // 11a. Verify Rate Finder and Auto-Fill are completely removed
+        assert("Rate Finder Navigation tab button is REMOVED", doc.getElementById('tab-btn-finder') === null);
+        assert("Rate Finder View panel is REMOVED", doc.getElementById('view-finder') === null);
+        assert("Invoice upload dropzone is REMOVED", doc.getElementById('invoice-upload-dropzone') === null);
+        assert("Invoice paste text modal is REMOVED", doc.getElementById('paste-text-modal') === null);
+
+        // 11b. Verify Navigation and Branding: "GST Invoice Verifier" and "VERIFY YOUR INVOICE GST CALCULATIONS"
+        const verifierTab = doc.getElementById('tab-btn-verifier');
+        const calcTab = doc.getElementById('tab-btn-calculator');
+        assert("GST Invoice Verifier tab exists", verifierTab !== null && verifierTab.textContent.includes('GST Invoice Verifier'));
+        assert("GST Calculator tab exists", calcTab !== null);
+
+        const heroSubtitle = doc.querySelector('.hero-subtitle');
+        assert("Hero subtitle is 'VERIFY YOUR INVOICE GST CALCULATIONS'", heroSubtitle !== null && heroSubtitle.textContent.trim() === 'VERIFY YOUR INVOICE GST CALCULATIONS');
+
+        // 11c. Verify top-right "+ Add Another Item" button in every item card header
+        const firstCardAddBtn = doc.querySelector('#item-card-0 .btn-add-item-card');
+        assert("Item #1 card header has '+ Add Another Item' button in top right", firstCardAddBtn !== null && firstCardAddBtn.textContent.includes('Add Another Item'));
+
+        // 11d. Verify Invoice Number field and Disclaimer
+        const invoiceNumberInput = doc.getElementById('invoice-number');
+        assert("Invoice Number (optional) input field exists", invoiceNumberInput !== null);
+
+        const disclaimer = doc.querySelector('.disclaimer-box');
+        assert("Informational disclaimer is present in footer and references 'GST Invoice Verifier'", disclaimer !== null && disclaimer.textContent.includes('GST Invoice Verifier is an informational calculation-verification tool'));
+
+        // Load app.js into DOM fixture
+        const script = document.createElement('script');
+        script.src = 'js/app.js';
+        script.onload = () => {
+          assert("window.gstApp instantiated successfully", !!window.gstApp);
+          
+          // Test clicking "+ Add Another Item" adds a new item card with top-right button
+          const item1AddBtn = document.querySelector('#item-card-0 .btn-add-item-card');
+          if (item1AddBtn && window.gstApp) {
+            item1AddBtn.click();
+            const itemsList = document.getElementById('invoice-items-list');
+            assert("Clicking '+ Add Another Item' creates Item #2", itemsList && itemsList.children.length === 2);
+            const item2AddBtn = itemsList.children[1].querySelector('.btn-add-item-card');
+            assert("Item #2 also has '+ Add Another Item' button in its top right header", item2AddBtn !== null);
+          }
+
+          // Test live UI calculation with Quantity > 1
+          const qtyInput = document.getElementById('item-qty-0');
+          const unitPriceInput = document.getElementById('item-unit-price-0');
+          const taxableInput = document.getElementById('item-taxable-0');
+          const rateInput = document.getElementById('item-rate-0');
+          const gstInput = document.getElementById('item-gst-0');
+
+          if (qtyInput && unitPriceInput && taxableInput && rateInput && gstInput) {
+            qtyInput.value = '2';
+            unitPriceInput.value = '5000';
+            rateInput.value = '18';
+            unitPriceInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+            assert("UI Quantity Calculation: Qty 2 × ₹5,000 sets Taxable to 10000.00", taxableInput.value === '10000.00');
+            assert("UI Quantity Calculation: ₹10,000 @ 18% sets GST to 1800.00", gstInput.value === '1800.00');
+          }
+
+          // Test Tab Switching & Taglines
+          const calcTabBtn = document.getElementById('tab-btn-calculator');
+          const verifierTabBtn = document.getElementById('tab-btn-verifier');
+          const calcPanel = document.getElementById('view-calculator');
+          const verifierPanel = document.getElementById('view-verifier');
+          const dynHeroTitle = document.getElementById('hero-title');
+          const dynHeroSubtitle = document.getElementById('hero-subtitle');
+
+          if (calcTabBtn && calcPanel) {
+            calcTabBtn.click();
+            assert("GST Calculator tab opens successfully (view-calculator has 'active' class)", calcPanel.classList.contains('active') && !verifierPanel.classList.contains('active'));
+            assert("GST Calculator tagline is 'CALCULATE GST QUICKLY AND ACCURATELY'", dynHeroSubtitle && dynHeroSubtitle.textContent.trim() === 'CALCULATE GST QUICKLY AND ACCURATELY');
+            assert("GST Calculator title is 'GST Calculator'", dynHeroTitle && dynHeroTitle.textContent.trim() === 'GST Calculator');
+
+            // 11e. Verify Exclusive vs Inclusive Option Toggles in Calculator DOM
+            const btnExclusive = document.getElementById('btn-calc-exclusive');
+            const btnInclusive = document.getElementById('btn-calc-inclusive');
+            const calcTransToggle = document.getElementById('calc-trans-toggle');
+            const calcModeHint = document.getElementById('calc-mode-hint');
+            const calcAmount = document.getElementById('calc-amount');
+            const calcAmountLabel = document.getElementById('calc-amount-label');
+            const calcResBase = document.getElementById('calc-res-base');
+            const calcResTax = document.getElementById('calc-res-tax');
+            const calcResSplit = document.getElementById('calc-res-split');
+            const calcResTotal = document.getElementById('calc-res-total');
+            const calcResetBtn = document.getElementById('btn-reset-calculator');
+
+            assert("Exclusive button text is exactly 'Exclusive' (text only, no icons)", btnExclusive !== null && btnExclusive.textContent.trim() === 'Exclusive');
+            assert("Inclusive button text is exactly 'Inclusive' (text only, no icons)", btnInclusive !== null && btnInclusive.textContent.trim() === 'Inclusive');
+            assert("Exclusive tagline is 'GST is added separately to the base price.'", calcModeHint !== null && calcModeHint.textContent.trim() === 'GST is added separately to the base price.');
+            assert("Transaction Jurisdiction is completely REMOVED from GST Calculator", calcTransToggle === null);
+
+            // Test Exclusive Mode Calculation on UI (₹10,000 @ 18%)
+            if (btnExclusive && calcAmount && calcResTotal) {
+              btnExclusive.click();
+              calcAmount.value = '10000';
+              calcAmount.dispatchEvent(new Event('input', { bubbles: true }));
+
+              assert("UI Exclusive Calculation: Base Taxable shows ₹10,000.00", calcResBase.textContent.includes('10,000.00'));
+              assert("UI Exclusive Calculation: GST Added shows + ₹1,800.00", calcResTax.textContent.includes('1,800.00'));
+              assert("UI Exclusive Calculation: Grand Total shows ₹11,800.00", calcResTotal.textContent.includes('11,800.00'));
+            }
+
+            // Test Inclusive Mode Calculation on UI (₹11,800 @ 18%)
+            if (btnInclusive && calcAmount && calcResTotal) {
+              btnInclusive.click();
+              assert("UI Inclusive Mode: Tagline changes to 'GST is already included in the total price.'", calcModeHint.textContent.trim() === 'GST is already included in the total price.');
+              assert("UI Inclusive Mode: Label changes to Total Amount (₹)", calcAmountLabel.textContent.includes('Total Amount'));
+
+              calcAmount.value = '11800';
+              calcAmount.dispatchEvent(new Event('input', { bubbles: true }));
+
+              assert("UI Inclusive Calculation: Total Amount shows ₹11,800.00", calcResBase.textContent.includes('11,800.00'));
+              assert("UI Inclusive Calculation: GST Extracted shows − ₹1,800.00", calcResTax.textContent.includes('1,800.00'));
+              assert("UI Inclusive Calculation: Net Base Taxable shows ₹10,000.00", calcResTotal.textContent.includes('10,000.00'));
+            }
+
+            // Test Reset Button in Calculator
+            if (calcResetBtn && btnExclusive && calcAmount) {
+              calcResetBtn.click();
+              assert("UI Calculator Reset: Resets calcMode to Exclusive", btnExclusive.classList.contains('active'));
+              assert("UI Calculator Reset: Resets calcAmount input to empty", calcAmount.value === '');
+              assert("UI Calculator Reset: Resets tagline to 'GST is added separately to the base price.'", calcModeHint.textContent.trim() === 'GST is added separately to the base price.');
+              assert("UI Calculator Reset: Resets Total to ₹0.00", calcResTotal.textContent.includes('0.00'));
+            }
+          }
+
+          if (verifierTabBtn && verifierPanel) {
+            verifierTabBtn.click();
+            assert("GST Invoice Verifier tab switches back successfully", verifierPanel.classList.contains('active') && !calcPanel.classList.contains('active'));
+            assert("GST Invoice Verifier tagline switches back to 'VERIFY YOUR INVOICE GST CALCULATIONS'", dynHeroSubtitle && dynHeroSubtitle.textContent.trim() === 'VERIFY YOUR INVOICE GST CALCULATIONS');
+          }
+
+          // Test Verifier Button Execution on UI
+          const sellerSelect = document.getElementById('seller-state');
+          const buyerSelect = document.getElementById('buyer-state');
+          const nameInput = document.getElementById('item-name-0');
+          const verifyBtn = document.getElementById('btn-verify-invoice');
+
+          if (sellerSelect && buyerSelect && nameInput && verifyBtn) {
+            sellerSelect.value = '29';
+            buyerSelect.value = '29';
+            nameInput.value = 'Office Laptop';
+            if (qtyInput) qtyInput.value = '1';
+            if (unitPriceInput) unitPriceInput.value = '10000';
+            if (taxableInput) taxableInput.value = '10000';
+            if (rateInput) rateInput.value = '18';
+            if (gstInput) gstInput.value = '1800';
+            verifyBtn.click();
+
+            const step2Node = document.getElementById('step-node-2');
+            assert("Step 2 circle is active (dark green) after adding details", step2Node && step2Node.classList.contains('active'));
+
+            const results = document.getElementById('verification-results');
+            assert("Verification button generates visible result in DOM", results && results.classList.contains('visible'));
+            assert("Verification result displays 'GST calculation matches'", results && results.textContent.includes('GST calculation matches'));
+            assert("Verification table is present and rendered", results && results.querySelector('.simple-borderless-table') !== null);
+            assert("Verification table footers show GST Rate", results && results.querySelector('tfoot').textContent.includes('18%'));
+          }
+
+          log("ALL TESTS COMPLETED SUCCESSFULLY!");
+        };
+        document.body.appendChild(script);
+      }
+    } catch (e) {
+      log("XHR/DOM Test Error: " + e.message, false);
+    }
+  </script>
+</body>
+</html>
