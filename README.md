@@ -1,7 +1,5 @@
-## Copyright & Usage
+## Attribution
 
-© 2026 Lakkepogu Samatha. All Rights Reserved.
+This project is publicly available for learning and use through the live application.
 
-This project is publicly available for viewing and use. You are welcome to use the live application through the shared link.
-
-Please do not copy, reproduce, or redistribute the source code, design, or original content, or claim this project as your own. If you share or refer to this project, please give proper credit to **Lakkepogu Samatha**, the original creator.
+Please do not copy or reproduce the project or its original content and present it as your own. If you use or share this project, please give credit to **Lakkepogu Samatha**, the original creator.
